@@ -37,6 +37,7 @@ void bubble_sort(int* arr, int arr_num) {
 ```
 
 ### 動作
+![example](/contents/sort_test.gif)
 
 ## 使い方 
 1. `#include "sort_visualize.h"`等で読み込みます。
