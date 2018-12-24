@@ -6,6 +6,7 @@
 #include "sort_visualize.h"
 
 int _order_evaluation(int*, int);
+void _make_swapline(char*);
 
 int* watched_array;		/*監視対象の配列*/
 int watched_array_num;	/*監視対象の配列の要素数*/
@@ -56,34 +57,23 @@ void visualize_swap(int* a, int* b) {
 			break;
 		}
 	}
-	/*アニメーションしつつ表示処理*/
+
 	int frame = abs(target1 - target2) * 6 + 1;	/*アニメーションフレームを設定*/
-	/*表示列を文字列情報に変換*/
-	/*アニメーション行の表示に用いる文字列*/
-	char* swapline = (char*)malloc(sizeof(char) * 6 * watched_array_num + 1);
-	char damp_swapline[7];	/*アニメーション行に関連する文字列のキャッシュ*/
-	for (int i = 0; i < watched_array_num; i++) {
-		/*アニメーション行の表示に用いる文字列を作成*/
-		sprintf(damp_swapline, " %-5d", watched_array[i]);
-		if (i > 0) {
-			strcat(swapline, damp_swapline);
-		}
-		else {
-			strcpy(swapline, damp_swapline);
-		}
-	}
+	char* swapline;								/*表示用文字列*/
 	/*入れ替え対象の文字列*/
 	char target1_str[7];
 	char target2_str[7];
 	sprintf(target1_str, " %-5d", watched_array[target1]);
 	sprintf(target2_str, " %-5d", watched_array[target2]);
+	int dir = (target2 - target1) / abs(target2 - target1);	/*移動方向*/
 	/*アニメーション*/
-	int dir = (target2 - target1) / abs(target2 - target1);/*移動方向*/
 	for (int i = 1; i < frame; i++) {
+		swapline = (char*)malloc(sizeof(char) * 6 * watched_array_num + 1);	/*メモリ確保*/
+		_make_swapline(swapline);											/*表示用文字列を作成*/
 		/*入れ替え対象の表示を空白で塗りつぶして消去*/
 		for (int j = 0; j < 5; j++) {
-			swapline[target1 * 6 + i * dir + j] = ' ';
-			swapline[target2 * 6 - i * dir + j] = ' ';
+			swapline[target1 * 6 + j] = ' ';
+			swapline[target2 * 6 + j] = ' ';
 		}
 		/*入れ替え対象の現フレームの位置に上書きで描画*/
 		for (int j = 0; j < 5; j++) {
@@ -91,7 +81,8 @@ void visualize_swap(int* a, int* b) {
 			swapline[target2 * 6 - i * dir + j] = target2_str[j];
 		}
 		printf("\r%s", swapline);	/*描画*/
-		Sleep(100);				/*待機*/
+		Sleep(100);					/*待機*/
+		free(swapline);				/*メモリ解放*/
 	}
 
 	/*入れ替え処理*/
@@ -103,8 +94,27 @@ void visualize_swap(int* a, int* b) {
 }
 
 /*
-* 並び替えが成功しているか確認する
-* @ return -1：失敗 1：昇順　2：降順
+ *文字列を作成する
+ *引数(swapline) 表示する文字列を入れる対象
+*/
+void _make_swapline(char* swapline) {
+	/*表示列を文字列情報に変換*/
+	char damp_swapline[7];	/*アニメーション行に関連する文字列のキャッシュ*/
+	for (int i = 0; i < watched_array_num; i++) {
+		/*アニメーション行の表示に用いる文字列を作成*/
+		sprintf(damp_swapline, " %-5d", watched_array[i]);
+		if (i > 0) {
+			strcat(swapline, damp_swapline);
+		}
+		else {
+			strcpy(swapline, damp_swapline);
+		}
+	}
+}
+
+/*
+ * 並び替えが成功しているか確認する
+ * @ return -1：失敗 1：昇順　2：降順
  */
 int _order_evaluation(int* arr, int arr_num) {
 	int order_mode = 0;		/*昇順：1 降順：-1　未判定：0*/
@@ -126,19 +136,19 @@ int _order_evaluation(int* arr, int arr_num) {
 				/*判定*/
 				order_mode = (value1 < value2) ? 1 : -1;
 			}
-			else if (order_mode == 1) {
-				/*判定済み・昇順の時*/
-				/*一つ前の値から確認*/
-				if (arr[i - 1] > arr[i]) {
-					return -1;	/*失敗判定*/
-				}
+		}
+		else if (order_mode == 1) {
+			/*判定済み・昇順の時*/
+			/*一つ前の値から確認*/
+			if (arr[i - 1] > arr[i]) {
+				return -1;	/*失敗判定*/
 			}
-			else if (order_mode == -1) {
-				/*判定済み・降順の時*/
-				/*一つ前の値から確認*/
-				if (arr[i - 1] > arr[i]) {
-					return -1;	/*ソートできてない判定*/
-				}
+		}
+		else if (order_mode == -1) {
+			/*判定済み・降順の時*/
+			/*一つ前の値から確認*/
+			if (arr[i - 1] > arr[i]) {
+				return -1;	/*ソートできてない判定*/
 			}
 		}
 	}
